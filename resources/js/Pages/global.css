@@ -1,0 +1,20 @@
+.table-row-group{
+    background-color: rgb(255, 255, 255) !important;
+    padding: 30px;
+    margin-bottom: 10px !important;
+    height: 50px !important;
+    border-radius: 10px !important;
+}
+.table-row-group .view{
+    color: rgb(16, 130, 211) !important;
+}
+.table-row-group .edit{
+    color: rgb(59, 196, 17) !important;
+}
+.table-row-group .danger{
+    color: rgb(211, 49, 16) !important;
+}
+.table-header-group{
+    margin-bottom: 20px !important;
+    height: 50px;
+}
