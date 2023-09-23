@@ -46,10 +46,35 @@ class ProfileController extends Controller
         ]);
     
         // Redirect to a success page or wherever you want
-        return redirect('/dashboard');
+        return redirect()->route('dashboard')->with('message', 'User create successfully');
     }
     
     
+    public function user_update(Request $request, $id)
+    {
+        // Validate the request data
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$id,
+            // Add other validation rules as needed
+        ]);
+    
+        // Find the user by ID
+        $user = User::findOrFail($id);
+    
+        // Update the user's details
+        $user->update($validatedData);
+    
+        return back()->with('success', 'User details updated successfully');
+    }
+
+    public function user_delete(string $id)
+    {
+        $product = User::find($id);
+        $product->delete();
+        return redirect()->route('dashboard')->with('message', 'Product Deleted successfully.');
+    }
 
     /**
      * Display the user's profile form.

@@ -4,13 +4,24 @@ import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
+import SweetAlert from '@/Components/SweetAlert';
+import UserEditModal from './Modal/EditUserModal';
+
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import UserList from '../Components/Userlist';
 import './global.css';
-export default function Dashboard(props) {
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+
+export default function Dashboard(props, users) {
+    
+   
 
     const { data, setData, post, errors, processing } = useForm({
         name: '',
@@ -20,18 +31,55 @@ export default function Dashboard(props) {
 
     });
 
-    const submit = (e) => {
-        e.preventDefault();
+    const [message, setMessage] = useState('');
 
-        post(route('create.user'));
+
+    const submit = async (e) => {
+        e.preventDefault();
+    
+        const response = await post(route('create.user')); // Use await to wait for the response
+    
+        try {
+            const response = await fetch('/api/create-item', {
+              method: 'POST',
+              // Add any necessary request headers and data here
+            });
+      
+            if (response.status === 200) {
+              const data = await response.json();
+              setMessage(data.message);
+              SweetAlert({
+                type: 'success',
+                title: 'Success',
+                text: data.message,
+              });
+            } else {
+              // Handle errors and show an error message if needed
+              SweetAlert({
+                type: 'error',
+                title: 'Error',
+                text: data.message,
+              });
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
+
+
+
     };
+    
 
     const handleOnChange = (event) => {
         setData(event.target.name, event.target.type === 'checkbox' ? event.target.checked : event.target.value);
     };
 
-    console.log
+    // all modal============================
+
+    const [editUser, setEditUser] = useState(null);
+    const [viewUser, setViewUser] = useState(null);
     // create user
+
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const confirmUserDeletion = () => {
         setConfirmingUserDeletion(true);
@@ -45,27 +93,20 @@ export default function Dashboard(props) {
 
     // user view
 
-    const [confirmingUserView, setconfirmingUserView] = useState(false);
-    const confirmUserView = () => {
-        setconfirmingUserView(true);
-    };
-    const closeModalView = () => {
-        setconfirmingUserView(false);
-
-        reset();
+    const closeViewModal = () => {
+        setViewUser(null);
     };
 
     // user edit
 
-    const [confirmingUserEdit, setconfirmingUserEdit] = useState(false);
-    const confirmUserEdit = () => {
-        setconfirmingUserEdit(true);
+    const openEditModal = (user) => {
+        setEditUser(user);
     };
-    const closeModalEdit = () => {
-        setconfirmingUserEdit(false);
 
-        reset();
+    const closeEditModal = () => {
+        setEditUser(null);
     };
+
 
 
     return (
@@ -87,99 +128,58 @@ export default function Dashboard(props) {
                                 </PrimaryButton>
                             </div>
                             {/* <UserList /> */}
+                            User List
                             <div class="table w-full ...">
+
                                 <div class="table-header-group mb-3">
                                     <div class="table-row">
                                         <div class="table-cell text-left ..."><h1 className='text-xl font-bold'>Serial</h1></div>
                                         <div class="table-cell text-left ..."><h1 className='text-xl font-bold'>Name</h1></div>
                                         <div class="table-cell text-left ..."><h1 className='text-xl font-bold'>UserName</h1></div>
                                         <div class="table-cell text-left ..."><h1 className='text-xl font-bold'>Email</h1></div>
-
                                         <div class="table-cell text-left ..."><h1 className='text-xl font-bold'>Action</h1></div>
-
                                     </div>
                                 </div>
 
-                                <div class="table-row-group border-solid border-2 mb-3">
-                                    <div class="table-row pb-3 pt-5 border-solid border-2 border-sky-500 ...">
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased ms-5">1</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">Ridoy khan</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">ridoy1658</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">pou4w98y@gmail.com</p></div>
 
 
-                                        <div class="table-cell ...">
-                                            <i class="fa-regular fa-eye antialiased hover:subpixel-antialiased view" onClick={confirmUserView}></i>
-                                            <i class="fa-regular fa-pen-to-square m-1 edit" onClick={confirmUserEdit} ></i>
-                                            <i class="fa-regular fa-trash-can m-1 danger"></i></div>
+
+
+
+                                {props.users.map((user) => (
+
+
+                                    <div class="table-row-group border-solid border-2 mb-3">
+                                        <div class="table-row pb-3 pt-5 border-solid border-2 border-sky-500 ...">
+                                            <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased ms-5">{user.id}</p></div>
+                                            <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">{user.name}</p></div>
+                                            <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">{user.username} </p></div>
+                                            <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">{user.email}</p></div>
+
+
+                                            <div class="table-cell ...">
+                                                <i class="fa-regular fa-eye antialiased hover:subpixel-antialiased view" onClick={() => setViewUser(user)}></i>
+                                                <i class="fa-regular fa-pen-to-square m-1 edit" onClick={() => openEditModal(user)} ></i>
+                                               
+
+                                                <Link href={`/user/delete/${user.id}`} className='btn btn-sm btn-danger'> <i class="fa-regular fa-trash-can m-1 danger"></i></Link>
+                                         
+
+
+
+                                            </div>
+                                        </div>
                                     </div>
+                                ))}
 
 
 
-                                </div>
-                                <div class="table-row-group rounded hover:rounded-lg ">
-                                    <div class="table-row pb-3 pt-5 border-solid border-2 border-sky-500 ...">
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased ms-5">2</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">Ridoy khan</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">ridoy1658</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">pou4w98y@gmail.com</p></div>
 
-
-                                        <div class="table-cell ...">
-                                            <i class="fa-regular fa-eye antialiased hover:subpixel-antialiased" onClick={confirmUserView}></i>
-                                            <i class="fa-regular fa-pen-to-square m-1" onClick={confirmUserEdit} ></i>
-                                            <i class="fa-regular fa-trash-can m-1"></i></div>
-                                    </div>
-
-
-
-                                </div>
-                                <div class="table-row-group rounded hover:rounded-lg ">
-                                    <div class="table-row pb-3 pt-5 border-solid border-2 border-sky-500 ...">
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased ms-5">2</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">Ridoy khan</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">ridoy1658</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">pou4w98y@gmail.com</p></div>
-
-
-                                        <div class="table-cell ...">
-                                            <i class="fa-regular fa-eye antialiased hover:subpixel-antialiased" onClick={confirmUserView}></i>
-                                            <i class="fa-regular fa-pen-to-square m-1" onClick={confirmUserEdit} ></i>
-                                            <i class="fa-regular fa-trash-can m-1"></i></div>
-                                    </div>
-
-
-
-                                </div>
-                                <div class="table-row-group rounded hover:rounded-lg ">
-                                    <div class="table-row pb-3 pt-5 border-solid border-2 border-sky-500 ...">
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased ms-5">2</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">Ridoy khan</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">ridoy1658</p></div>
-                                        <div class="table-cell ..."><p class="text-slate-400 hover:text-sky-400 antialiased hover:subpixel-antialiased">pou4w98y@gmail.com</p></div>
-
-
-                                        <div class="table-cell ...">
-                                            <i class="fa-regular fa-eye antialiased hover:subpixel-antialiased" onClick={confirmUserView}></i>
-                                            <i class="fa-regular fa-pen-to-square m-1" onClick={confirmUserEdit} ></i>
-                                            <i class="fa-regular fa-trash-can m-1"></i></div>
-                                    </div>
-
-
-
-                                </div>
                             </div>
-
-
-
-
-
-
                         </div>
                     </div>
                 </div>
             </div>
-
 
 
 
@@ -209,13 +209,13 @@ export default function Dashboard(props) {
                             onChange={handleOnChange}
                             required
 
-                            className="mt-1 block w-3/4"
+                            className="mt-1 block w-full"
                         />
                         <InputError className="mt-2" message={errors.name} />
                     </div>
 
                     <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
+                      
                         <p className="mt-1 text-sm text-gray-600">
                             UserName
                         </p>
@@ -223,11 +223,10 @@ export default function Dashboard(props) {
                             id="username"
                             type="text"
                             name="username"
-                            className="mt-1 block w-3/4"
-                            isFocused
+                            className="mt-1 block w-full"
+                        
                             placeholder="UserName"
 
-                            autoComplete="username"
                             value={data.username}
                             onChange={handleOnChange}
                             required
@@ -245,7 +244,7 @@ export default function Dashboard(props) {
                             id="email"
                             type="email"
                             name="email"
-                            className="mt-1 block w-3/4"
+                            className="mt-1 block w-full"
                             isFocused
                             placeholder="email"
 
@@ -267,7 +266,7 @@ export default function Dashboard(props) {
                             id="password"
                             type="password"
                             name="password"
-                            className="mt-1 block w-3/4"
+                            className="mt-1 block w-full"
                             isFocused
                             placeholder="password"
 
@@ -292,133 +291,64 @@ export default function Dashboard(props) {
             </Modal>
 
             {/* ====================View user======================= */}
-            <Modal show={confirmingUserView} onClose={closeModalView}>
-                <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Create User Account
-                    </h2>
+            <Modal show={!!viewUser} onClose={closeViewModal}>
+                {viewUser && (
+                    <div className="p-6">
+                        <h2 className="text-lg font-medium text-gray-900">
+                            User Details
+                        </h2>
 
+                        <div className="mt-6">
+                            <InputLabel htmlFor="username" value="Username" className="sr-only" />
+                            <p className="mt-1 text-sm text-gray-600">
+                                Name
+                            </p>
+                            <p>{viewUser.name}</p>
+                        </div>
+                        <div className="mt-6">
+                            <InputLabel htmlFor="username" value="Username" className="sr-only" />
+                            <p className="mt-1 text-sm text-gray-600">
+                                Username
+                            </p>
+                            <p>{viewUser.username}</p>
+                        </div>
 
+                        <div className="mt-6">
+                            <InputLabel htmlFor="email" value="Email" className="sr-only" />
+                            <p className="mt-1 text-sm text-gray-600">
+                                Email
+                            </p>
+                            <p>{viewUser.email}</p>
+                        </div>
 
-                    <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
-                        <p className="mt-1 text-sm text-gray-600">
-                            UserName
-                        </p>
-
-                        ridoy1658
-
-
+                        <div className="mt-6 flex ">
+                            <DangerButton className="" onClick={closeViewModal}>
+                                Close
+                            </DangerButton>
+                        </div>
                     </div>
-                    <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
-                        <p className="mt-1 text-sm text-gray-600">
-                            Email
-                        </p>
-                        pou4w98y@gamil.com
-
-
-                    </div>
-
-
-                    <div className="mt-6 flex ">
-
-
-                        <DangerButton className="" onClick={closeModalView} >
-                            Closed
-                        </DangerButton>
-                    </div>
-                </div>
+                )}
             </Modal>
+        
             {/* ====================View edit======================= */}
-            <Modal show={confirmingUserEdit} onClose={closeModal}>
-                <form className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Update User Account
-                    </h2>
+            {editUser && (
+                <UserEditModal user={editUser} onClose={closeEditModal} />
+            )}
 
 
 
-                    <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
-                        <p className="mt-1 text-sm text-gray-600">
-                            Name
-                        </p>
-                        <TextInput
-                            id="UserName"
-                            type="text"
-                            name="password"
-
-
-                            className="mt-1 block w-3/4"
-                            isFocused
-                            placeholder="Name"
-                        />
-                    </div>
-                    <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
-                        <p className="mt-1 text-sm text-gray-600">
-                            UserName
-                        </p>
-                        <TextInput
-                            id="UserName"
-                            type="text"
-                            name="password"
-
-
-                            className="mt-1 block w-3/4"
-                            isFocused
-                            placeholder="UserName"
-                        />
-
-
-                    </div>
-                    <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
-                        <p className="mt-1 text-sm text-gray-600">
-                            Email
-                        </p>
-                        <TextInput
-                            id="UserName"
-                            type="email"
-                            name="password"
-
-
-                            className="mt-1 block w-3/4"
-                            isFocused
-                            placeholder="email"
-                        />
-
-
-                    </div>
-                    <div className="mt-6">
-                        <InputLabel htmlFor="password" value="Password" className="sr-only" />
-                        <p className="mt-1 text-sm text-gray-600">
-                            Password
-                        </p>
-                        <TextInput
-                            id="UserName"
-                            type="password"
-                            name="password"
-
-
-                            className="mt-1 block w-3/4"
-                            isFocused
-                            placeholder="password"
-                        />
-
-
-                    </div>
-
-                    <div className="mt-6 flex ">
-                        <PrimaryButton >Update</PrimaryButton>
-
-                        <DangerButton className="ml-3" onClick={closeModal} >
-                            Cancle
-                        </DangerButton>
-                    </div>
-                </form>
-            </Modal>
+                <ToastContainer
+                    position="top-right"
+                    autoClose={3000} // Adjust the autoClose time as needed
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
+      
 
         </AuthenticatedLayout>
     );

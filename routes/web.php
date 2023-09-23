@@ -34,6 +34,8 @@ Route::get('/dashboard', function () {
 
 Route::middleware('auth')->group(function () {
 
+    Route::put('/users/{id}', [ProfileController::class, 'user_update'])->name('users.update');
+    Route::get('user/delete/{id}', [ProfileController::class, 'user_delete'])->name('user.delete');
     Route::post('/create_user', [ProfileController::class, 'store'])->name('create.user');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
